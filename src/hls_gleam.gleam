@@ -1,5 +1,5 @@
+import hls_gleam/event.{type Event, event_to_string}
 import hls_gleam/video_element.{type VideoElement}
-import hls_gleam/event.{type Event,event_to_string}
 
 pub type Hls {
   Hls
