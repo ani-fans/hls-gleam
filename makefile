@@ -9,5 +9,8 @@ build: js-build
 check:
 	gleam check
 
-test: build
-	gleam test 
+test:
+	gleam test
+
+test-w-build: build
+	gleam test
