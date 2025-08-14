@@ -18,3 +18,6 @@ pub fn new(
 ) -> VideoElement(a) {
   VideoElement(video(attributes, inners))
 }
+
+@external(javascript, "../hls-ffi.mjs", "videoPlay")
+pub fn play(elm: VideoElement(a)) -> Nil

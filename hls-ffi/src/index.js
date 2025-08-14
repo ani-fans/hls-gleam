@@ -19,3 +19,7 @@ export function attachMedia(hls, videoDOMElement) {
 export function on(hls, events, fn) {
   hls.on(events, fn)
 }
+
+export function videoPlay(video) {
+  video.play()
+}
