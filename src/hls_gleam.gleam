@@ -6,4 +6,4 @@ pub type Hls {
 pub fn new() -> Hls
 
 @external(javascript, "./hls-ffi.mjs", "isSupported")
-pub fn is_supported() -> Bool 
+pub fn is_supported() -> Bool
