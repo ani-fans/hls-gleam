@@ -26965,7 +26965,7 @@ Hls.defaultConfig = void 0;
 function newHls() {
     return new Hls();
 }
-function is_supported() {
+function src_isSupported() {
     return Hls.isSupported();
 }
 function loadSource(hls, src) {
@@ -26977,4 +26977,4 @@ function attachMedia(hls, videoDOMElement) {
 function src_on(hls, events, fn) {
     hls.on(events, fn);
 }
-export { attachMedia, is_supported, loadSource, newHls, src_on as on };
+export { attachMedia, src_isSupported as isSupported, loadSource, newHls, src_on as on };

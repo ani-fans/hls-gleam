@@ -4,7 +4,7 @@ export function newHls() {
   return new Hls()
 }
 
-export function is_supported() {
+export function isSupported() {
   return Hls.isSupported()
 }
 
