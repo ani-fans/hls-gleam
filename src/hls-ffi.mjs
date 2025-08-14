@@ -26977,4 +26977,7 @@ function attachMedia(hls, videoDOMElement) {
 function src_on(hls, events, fn) {
     hls.on(events, fn);
 }
-export { attachMedia, src_isSupported as isSupported, loadSource, newHls, src_on as on };
+function videoPlay(video1) {
+    video1.play();
+}
+export { attachMedia, src_isSupported as isSupported, loadSource, newHls, src_on as on, videoPlay };
