@@ -1,4 +1,4 @@
-.PHONY: build
+.PHONY: test build
 
 js-build:
 	$(MAKE) -C ./hls-ffi/ build
@@ -9,5 +9,8 @@ build: js-build
 check:
 	gleam check
 
-test: build
-	gleam test 
+test:
+	gleam test
+
+test-w-build: build
+	gleam test
