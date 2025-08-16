@@ -2083,14 +2083,14 @@ function getVariantDecodingBitrate(level) {
 }
 function getMediaDecodingInfoKey(config) {
     let key = '';
-    const { audio, video: video1 } = config;
-    if (video1) {
-        const codec = getCodecsForMimeType(video1.contentType);
-        key += `${codec}_r${video1.height}x${video1.width}f${Math.ceil(video1.framerate)}${video1.transferFunction || 'sd'}_${Math.ceil(video1.bitrate / 1e5)}`;
+    const { audio, video } = config;
+    if (video) {
+        const codec = getCodecsForMimeType(video.contentType);
+        key += `${codec}_r${video.height}x${video.width}f${Math.ceil(video.framerate)}${video.transferFunction || 'sd'}_${Math.ceil(video.bitrate / 1e5)}`;
     }
     if (audio) {
         const codec = getCodecsForMimeType(audio.contentType);
-        key += `${video1 ? '_' : ''}${codec}_c${audio.channels}`;
+        key += `${video ? '_' : ''}${codec}_c${audio.channels}`;
     }
     return key;
 }
@@ -11873,7 +11873,7 @@ class MP4Remuxer extends Logger {
         return startPTS;
     }
     remux(audioTrack, videoTrack, id3Track, textTrack, timeOffset, accurateTimeOffset, flush, playlistType) {
-        let video1;
+        let video;
         let audio;
         let initSegment;
         let text;
@@ -11934,13 +11934,13 @@ class MP4Remuxer extends Logger {
                             this.warn('regenerate InitSegment as video detected');
                             initSegment = this.generateIS(audioTrack, videoTrack, timeOffset, accurateTimeOffset);
                         }
-                        video1 = this.remuxVideo(videoTrack, videoTimeOffset, isVideoContiguous, audioTrackLength);
+                        video = this.remuxVideo(videoTrack, videoTimeOffset, isVideoContiguous, audioTrackLength);
                     }
-                } else if (enoughVideoSamples) video1 = this.remuxVideo(videoTrack, videoTimeOffset, isVideoContiguous, 0);
-                if (video1) {
-                    video1.firstKeyFrame = firstKeyFrameIndex;
-                    video1.independent = -1 !== firstKeyFrameIndex;
-                    video1.firstKeyFramePTS = firstKeyFramePTS;
+                } else if (enoughVideoSamples) video = this.remuxVideo(videoTrack, videoTimeOffset, isVideoContiguous, 0);
+                if (video) {
+                    video.firstKeyFrame = firstKeyFrameIndex;
+                    video.independent = -1 !== firstKeyFrameIndex;
+                    video.firstKeyFramePTS = firstKeyFramePTS;
                 }
             }
         }
@@ -11950,7 +11950,7 @@ class MP4Remuxer extends Logger {
         }
         return {
             audio,
-            video: video1,
+            video,
             initSegment,
             independent,
             text,
@@ -12484,20 +12484,20 @@ class PassThroughRemuxer extends Logger {
             this.initData = void 0;
             return;
         }
-        const { audio, video: video1 } = this.initData = parseInitSegment(initSegment);
+        const { audio, video } = this.initData = parseInitSegment(initSegment);
         if (decryptdata) patchEncyptionData(initSegment, decryptdata);
         else {
-            const eitherTrack = audio || video1;
+            const eitherTrack = audio || video;
             if (null != eitherTrack && eitherTrack.encrypted) this.warn(`Init segment with encrypted track with has no key ("${eitherTrack.codec}")!`);
         }
         if (audio) audioCodec = getParsedTrackCodec(audio, ElementaryStreamTypes.AUDIO, this);
-        if (video1) videoCodec = getParsedTrackCodec(video1, ElementaryStreamTypes.VIDEO, this);
+        if (video) videoCodec = getParsedTrackCodec(video, ElementaryStreamTypes.VIDEO, this);
         const tracks = {};
-        if (audio && video1) tracks.audiovideo = {
+        if (audio && video) tracks.audiovideo = {
             container: 'video/mp4',
             codec: audioCodec + ',' + videoCodec,
-            supplemental: video1.supplemental,
-            encrypted: video1.encrypted,
+            supplemental: video.supplemental,
+            encrypted: video.encrypted,
             initSegment,
             id: 'main'
         };
@@ -12508,11 +12508,11 @@ class PassThroughRemuxer extends Logger {
             initSegment,
             id: 'audio'
         };
-        else if (video1) tracks.video = {
+        else if (video) tracks.video = {
             container: 'video/mp4',
             codec: videoCodec,
-            supplemental: video1.supplemental,
-            encrypted: video1.encrypted,
+            supplemental: video.supplemental,
+            encrypted: video.encrypted,
             initSegment,
             id: 'main'
         };
@@ -17515,7 +17515,7 @@ class FPSController {
     onMediaDetaching() {
         this.media = null;
     }
-    checkFPS(video1, decodedFrames, droppedFrames) {
+    checkFPS(video, decodedFrames, droppedFrames) {
         const currentTime = performance.now();
         if (decodedFrames) {
             if (this.lastTime) {
@@ -17551,11 +17551,11 @@ class FPSController {
         }
     }
     checkFPSInterval() {
-        const video1 = this.media;
-        if (video1) if (this.isVideoPlaybackQualityAvailable) {
-            const videoPlaybackQuality = video1.getVideoPlaybackQuality();
-            this.checkFPS(video1, videoPlaybackQuality.totalVideoFrames, videoPlaybackQuality.droppedVideoFrames);
-        } else this.checkFPS(video1, video1.webkitDecodedFrameCount, video1.webkitDroppedFrameCount);
+        const video = this.media;
+        if (video) if (this.isVideoPlaybackQualityAvailable) {
+            const videoPlaybackQuality = video.getVideoPlaybackQuality();
+            this.checkFPS(video, videoPlaybackQuality.totalVideoFrames, videoPlaybackQuality.droppedVideoFrames);
+        } else this.checkFPS(video, video.webkitDecodedFrameCount, video.webkitDroppedFrameCount);
     }
 }
 function sendAddTrackEvent(track, videoEl) {
@@ -25507,7 +25507,7 @@ class StreamController extends BaseStreamController {
         const context = this.getCurrentContext(chunkMeta);
         if (!context) return void this.resetWhenMissingContext(chunkMeta);
         const { frag, part, level } = context;
-        const { video: video1, text, id3, initSegment } = remuxResult;
+        const { video, text, id3, initSegment } = remuxResult;
         const { details } = level;
         const audio = this.altAudio ? void 0 : remuxResult.audio;
         if (this.fragContextChanged(frag)) return void this.fragmentTracker.removeFragment(frag);
@@ -25543,33 +25543,33 @@ class StreamController extends BaseStreamController {
                 });
             }
         }
-        if (video1 && details) {
-            if (audio && 'audiovideo' === video1.type) this.logMuxedErr(frag);
+        if (video && details) {
+            if (audio && 'audiovideo' === video.type) this.logMuxedErr(frag);
             const prevFrag = details.fragments[frag.sn - 1 - details.startSN];
             const isFirstFragment = frag.sn === details.startSN;
             const isFirstInDiscontinuity = !prevFrag || frag.cc > prevFrag.cc;
             if (false !== remuxResult.independent) {
-                const { startPTS, endPTS, startDTS, endDTS } = video1;
-                if (part) part.elementaryStreams[video1.type] = {
+                const { startPTS, endPTS, startDTS, endDTS } = video;
+                if (part) part.elementaryStreams[video.type] = {
                     startPTS,
                     endPTS,
                     startDTS,
                     endDTS
                 };
                 else {
-                    if (video1.firstKeyFrame && video1.independent && 1 === chunkMeta.id && !isFirstInDiscontinuity) this.couldBacktrack = true;
-                    if (video1.dropped && video1.independent) {
+                    if (video.firstKeyFrame && video.independent && 1 === chunkMeta.id && !isFirstInDiscontinuity) this.couldBacktrack = true;
+                    if (video.dropped && video.independent) {
                         const bufferInfo = this.getMainFwdBufferInfo();
                         const targetBufferTime = (bufferInfo ? bufferInfo.end : this.getLoadPosition()) + this.config.maxBufferHole;
-                        const startTime = video1.firstKeyFramePTS ? video1.firstKeyFramePTS : startPTS;
+                        const startTime = video.firstKeyFramePTS ? video.firstKeyFramePTS : startPTS;
                         if (!isFirstFragment && targetBufferTime < startTime - this.config.maxBufferHole && !isFirstInDiscontinuity) return void this.backtrack(frag);
                         if (isFirstInDiscontinuity) frag.gap = true;
-                        frag.setElementaryStreamInfo(video1.type, frag.start, endPTS, frag.start, endDTS, true);
+                        frag.setElementaryStreamInfo(video.type, frag.start, endPTS, frag.start, endDTS, true);
                     } else if (isFirstFragment && startPTS - (details.appliedTimelineOffset || 0) > MAX_START_GAP_JUMP) frag.gap = true;
                 }
-                frag.setElementaryStreamInfo(video1.type, startPTS, endPTS, startDTS, endDTS);
+                frag.setElementaryStreamInfo(video.type, startPTS, endPTS, startDTS, endDTS);
                 if (this.backtrackFragment) this.backtrackFragment = frag;
-                this.bufferFragmentData(video1, frag, part, chunkMeta, isFirstFragment || isFirstInDiscontinuity);
+                this.bufferFragmentData(video, frag, part, chunkMeta, isFirstFragment || isFirstInDiscontinuity);
             } else {
                 if (!isFirstFragment && !isFirstInDiscontinuity) return void this.backtrack(frag);
                 frag.gap = true;
@@ -25615,7 +25615,7 @@ class StreamController extends BaseStreamController {
             delete tracks.audio;
             if (tracks.audiovideo) this.logMuxedErr(frag);
         }
-        const { audio, video: video1, audiovideo } = tracks;
+        const { audio, video, audiovideo } = tracks;
         if (audio) {
             const levelCodec = currentLevel.audioCodec;
             let audioCodec = pickMostCompleteCodecName(audio.codec, levelCodec);
@@ -25636,23 +25636,23 @@ class StreamController extends BaseStreamController {
             this.log(`Init audio buffer, container:${audio.container}, codecs[selected/level/parsed]=[${audioCodec || ''}/${levelCodec || ''}/${audio.codec}]`);
             delete tracks.audiovideo;
         }
-        if (video1) {
-            video1.levelCodec = currentLevel.videoCodec;
-            video1.id = PlaylistLevelType.MAIN;
-            const parsedVideoCodec = video1.codec;
+        if (video) {
+            video.levelCodec = currentLevel.videoCodec;
+            video.id = PlaylistLevelType.MAIN;
+            const parsedVideoCodec = video.codec;
             if ((null == parsedVideoCodec ? void 0 : parsedVideoCodec.length) === 4) switch(parsedVideoCodec){
                 case 'hvc1':
                 case 'hev1':
-                    video1.codec = 'hvc1.1.6.L120.90';
+                    video.codec = 'hvc1.1.6.L120.90';
                     break;
                 case 'av01':
-                    video1.codec = 'av01.0.04M.08';
+                    video.codec = 'av01.0.04M.08';
                     break;
                 case 'avc1':
-                    video1.codec = 'avc1.42e01e';
+                    video.codec = 'avc1.42e01e';
                     break;
             }
-            this.log(`Init video buffer, container:${video1.container}, codecs[level/parsed]=[${currentLevel.videoCodec || ''}/${parsedVideoCodec}]${video1.codec !== parsedVideoCodec ? ' parsed-corrected=' + video1.codec : ''}${video1.supplemental ? ' supplemental=' + video1.supplemental : ''}`);
+            this.log(`Init video buffer, container:${video.container}, codecs[level/parsed]=[${currentLevel.videoCodec || ''}/${parsedVideoCodec}]${video.codec !== parsedVideoCodec ? ' parsed-corrected=' + video.codec : ''}${video.supplemental ? ' supplemental=' + video.supplemental : ''}`);
             delete tracks.audiovideo;
         }
         if (audiovideo) {
@@ -25700,12 +25700,12 @@ class StreamController extends BaseStreamController {
         this.state = State.IDLE;
     }
     checkFragmentChanged() {
-        const video1 = this.media;
+        const video = this.media;
         let fragPlayingCurrent = null;
-        if (video1 && video1.readyState > 1 && false === video1.seeking) {
-            const currentTime = video1.currentTime;
-            if (BufferHelper.isBuffered(video1, currentTime)) fragPlayingCurrent = this.getAppendedFrag(currentTime);
-            else if (BufferHelper.isBuffered(video1, currentTime + 0.1)) fragPlayingCurrent = this.getAppendedFrag(currentTime + 0.1);
+        if (video && video.readyState > 1 && false === video.seeking) {
+            const currentTime = video.currentTime;
+            if (BufferHelper.isBuffered(video, currentTime)) fragPlayingCurrent = this.getAppendedFrag(currentTime);
+            else if (BufferHelper.isBuffered(video, currentTime + 0.1)) fragPlayingCurrent = this.getAppendedFrag(currentTime + 0.1);
             if (fragPlayingCurrent) {
                 this.backtrackFragment = null;
                 const fragPlaying = this.fragPlaying;
@@ -26972,12 +26972,12 @@ function loadSource(hls, src) {
     hls.loadSource(src);
 }
 function attachMedia(hls, videoDOMElement) {
-    hls.attachMedia(video);
+    hls.attachMedia(videoDOMElement);
 }
 function src_on(hls, events, fn) {
     hls.on(events, fn);
 }
-function videoPlay(video1) {
-    video1.play();
+function videoPlay(video) {
+    video.play();
 }
 export { attachMedia, src_isSupported as isSupported, loadSource, newHls, src_on as on, videoPlay };

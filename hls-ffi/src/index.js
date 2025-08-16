@@ -13,7 +13,7 @@ export function loadSource(hls, src) {
 }
 
 export function attachMedia(hls, videoDOMElement) {
-  hls.attachMedia(video)
+  hls.attachMedia(videoDOMElement)
 }
 
 export function on(hls, events, fn) {
