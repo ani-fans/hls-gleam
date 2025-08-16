@@ -1,5 +1,5 @@
-.PHONY: build
-
+.PHONY: test build
+ 
 js-build:
 	$(MAKE) -C ./hls-ffi/ build
 

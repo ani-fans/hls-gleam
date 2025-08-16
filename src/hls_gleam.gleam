@@ -11,14 +11,25 @@ pub fn new() -> Hls
 @external(javascript, "./hls-ffi.mjs", "isSupported")
 pub fn is_supported() -> Bool
 
+pub fn load_source(hls: Hls, src: String) -> Hls {
+  load_source_ffi(hls, src)
+  hls
+}
+
 @external(javascript, "./hls-ffi.mjs", "loadSource")
-pub fn load_source(hls: Hls, src: String) -> Nil
+fn load_source_ffi(hls: Hls, src: String) -> Nil
+
+pub fn attach_media(hls: Hls, media: VideoElement(a)) -> Hls {
+  attach_media_ffi(hls, media)
+  hls
+}
 
 @external(javascript, "./hls-ffi.mjs", "attachMedia")
-pub fn attach_media(hls: Hls, media: VideoElement(a)) -> Nil
+fn attach_media_ffi(hls: Hls, media: VideoElement(a)) -> Nil
 
-pub fn on(hls: Hls, event: Event, handler: fn() -> Nil) -> Nil {
+pub fn on(hls: Hls, event: Event, handler: fn() -> Nil) -> Hls {
   on_ffi(hls, event_to_string(event), handler)
+  hls
 }
 
 @external(javascript, "./hls-ffi.mjs", "on")
