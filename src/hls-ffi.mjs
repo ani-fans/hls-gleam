@@ -26980,4 +26980,7 @@ function src_on(hls, events, fn) {
 function videoPlay(video) {
     video.play();
 }
-export { attachMedia, src_isSupported as isSupported, loadSource, newHls, src_on as on, videoPlay };
+function getById(id) {
+    return document.getElementById(id);
+}
+export { attachMedia, getById, src_isSupported as isSupported, loadSource, newHls, src_on as on, videoPlay };

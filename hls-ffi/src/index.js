@@ -23,3 +23,7 @@ export function on(hls, events, fn) {
 export function videoPlay(video) {
   video.play()
 }
+
+export function getById(id) {
+  return document.getElementById(id)
+}
